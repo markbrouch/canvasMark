@@ -29,7 +29,8 @@ Call canvasMark on a canvas tag with additional properties:
 Canvas animation can be controlled via triggers on the canvas element:
 
     <script>
-        $('canvas').trigger('play'); // Pauses playback
+        $('canvas').trigger('pause'); // Pauses playback
+        $('canvas').trigger('move', 5); // Advances animation 5 frames.
     </script>
 
 The following triggers are available:
