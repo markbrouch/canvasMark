@@ -8,13 +8,19 @@
 			playing : false
 		};
 
-		var generateFrames = function() {
+		var generateFrames = function(frameCount) {
+			frameCount = frameCount || -1;
+
 			if(/(iPad|iPhone|iPod)/g.test(navigator.userAgent)) {	// Handle iOS subsampling
-				if(spriteSheet.width * spriteSheet.height >= 1024 * 1024) {	// image > 1MP
-					sprite.width /= 2;
-					sprite.height /= 2;
-					spriteSheet.width /= 2;
-					spriteSheet.height /= 2;
+				if(spriteSheet.width * spriteSheet.height >= 2 * 1024 * 1024) {	// image > 2MP
+					var sampleFactor = 2;
+					if(spriteSheet.width * spriteSheet.height >= 20 * 1024 * 1024) {	// image > 20MP
+						sampleFactor = 4;
+					}
+					sprite.width /= sampleFactor;
+					sprite.height /= sampleFactor;
+					spriteSheet.width /= sampleFactor;
+					spriteSheet.height /= sampleFactor;
 				}
 			}
 
@@ -24,10 +30,12 @@
 
 			for(var y = 0; y < gridY; y++) {
 				for(var x = 0; x < gridX; x++) {
-					frames.push({
-						y: y * sprite.height,
-						x: x * sprite.width
-					});
+					if(frames.length < frameCount || frameCount < 0) {
+						frames.push({
+							y: y * sprite.height,
+							x: x * sprite.width
+						});
+					}
 				}
 			}
 
@@ -38,7 +46,7 @@
 			window.requestAnimationFrame(animate);
 
 			canvas.width = _this.width();
-			canvas.height = canvas.width / (sprite.width / sprite.height);
+			canvas.height = sprite.height * (canvas.width / sprite.width);
 
 			if(animator.playing) {
 				animator.ticks++;
@@ -110,6 +118,16 @@
 			}
 		};
 
+		var moveTo = function(e, data) {
+			var frame = 0;
+			if(arguments.length === 1) {
+				frame = e;
+			} else {
+				frame = data.frame;
+			}
+			animator.frame = frame;
+		};
+
 		this.init = function(options) {
 			_this = this;
 			canvas = this[0];
@@ -120,16 +138,17 @@
 			spriteSheet = new Image();
 			spriteSheet.src = options.spriteSheet;
 			$(spriteSheet).load(function() {
-				frames = generateFrames();
+				frames = generateFrames(options.frames);
 				animate();
 			});
 
 			_this.on({
-				play  : play,
-				pause : pause,
-				next  : next,
-				prev  : prev,
-				move  : move
+				play   : play,
+				pause  : pause,
+				next   : next,
+				prev   : prev,
+				move   : move,
+				moveTo : moveTo
 			});
 		};
 		
